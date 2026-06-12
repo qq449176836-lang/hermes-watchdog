@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+*.egg
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Monitor 本地状态（含敏感信息）
+.report_webhook
+.alert_webhook
+.monitor_state.json
+.monitor_log.jsonl
+
+# 环境配置
+.env
+.env.local
+
+# 运行时状态
+/tmp/hermes-monitor-state.txt
+/tmp/hermes-watchdog-*

@@ -56,9 +56,9 @@ DEFAULT_DB_PATH = os.path.join(get_home(), ".tkads", "data", "analytics.db")
 
 # Cron 任务定义（供检查和报告使用）
 CRON_JOBS = {
-    "daily-collect":        {"schedule": "0 7 * * *"},
+    "店铺广告采集":  {"schedule": "0 7 * * *"},
     "daily-github-backup":  {"schedule": "0 11 * * *"},
-    "daily-ad-report":      {"schedule": "0 9 * * *"},
-    "daily-creator-report": {"schedule": "0 9 * * *"},
+    "AI自动化-广告日报":    {"schedule": "0 9 * * *"},
+    "AI自动化-达人日报":{"schedule": "0 9 * * *"},
     "cron-guardian":        {"schedule": "every 120m"},
 }

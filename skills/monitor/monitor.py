@@ -83,17 +83,16 @@ def run(fast_mode=False):
                 state["recovery_count"] = state.get("recovery_count", 0) + 1
                 log_event("INFO", "browser", f"自动恢复成功: {rmsg}", recovered=True)
 
-    # ── 3. 磁盘（非 fast） ──
-    if not fast_mode:
-        disk_ok, disk_msg = check_disk()
-        prev = state["checks"].get("disk", "unknown")
-        new_status = "ok" if disk_ok else "low"
-        if prev != new_status:
-            state["checks"]["disk"] = new_status
-            changed = True
-            if not disk_ok:
-                p2_alerts.append(("磁盘空间", disk_msg))
-                log_event("P2", "disk", disk_msg)
+    # ── 3. 磁盘 ──
+    disk_ok, disk_msg = check_disk()
+    prev = state["checks"].get("disk", "unknown")
+    new_status = "ok" if disk_ok else "low"
+    if prev != new_status:
+        state["checks"]["disk"] = new_status
+        changed = True
+        if not disk_ok:
+            p2_alerts.append(("磁盘空间", disk_msg))
+            log_event("P2", "disk", disk_msg)
 
     # ── 4. 数据库 ──
     db_ok, db_msg = check_database()
@@ -117,17 +116,16 @@ def run(fast_mode=False):
             p2_alerts.append(("TikTok网络", net_msg))
             log_event("P2", "internet", net_msg)
 
-    # ── 6. Cron 任务（非 fast） ──
-    if not fast_mode:
-        cron_ok, cron_msg = check_cron_jobs(hermes_exe)
-        prev = state["checks"].get("cron", "unknown")
-        new_status = "up" if cron_ok else "down"
-        if prev != new_status:
-            state["checks"]["cron"] = new_status
-            changed = True
-            if not cron_ok:
-                p1_alerts.append(("Cron任务", cron_msg))
-                log_event("P1", "cron", cron_msg)
+    # ── 6. Cron 任务 ──
+    cron_ok, cron_msg = check_cron_jobs(hermes_exe)
+    prev = state["checks"].get("cron", "unknown")
+    new_status = "up" if cron_ok else "down"
+    if prev != new_status:
+        state["checks"]["cron"] = new_status
+        changed = True
+        if not cron_ok:
+            p1_alerts.append(("Cron任务", cron_msg))
+            log_event("P1", "cron", cron_msg)
 
     # ── 7. 自动恢复统计 ──
     rc = state.get("recovery_count", 0)
@@ -179,7 +177,7 @@ def run(fast_mode=False):
         summary.append(f"🤖 自动恢复: {rc} 次" if rc > 0 else "🤖 自动恢复: 无异常")
         summary.append("")
         summary.append("📋 任务时间表")
-        summary.append("07:00 数据采集 | 09:00 两份日报 | 11:00 GitHub备份")
+        summary.append("07:00 数据采集 | 09:00 两份日报 | 23:00 自进化 | 23:30 复盘")
         summary.append("⏱ 探针每30分钟 | 🩺 完整体检每2小时")
 
         notify(webhook, "P2", "系统健康报告", "\n".join(summary))

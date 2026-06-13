@@ -29,71 +29,64 @@ hermes-watchdog/
 ├── README.md                          # 本文件
 ├── config/
 │   └── webhook.example                # 飞书 Webhook 配置模板
-├── shared/                            # Python 共享模块
-│   ├── config.py                      # 配置 & Hermes 版本自动检测
-│   ├── checks.py                      # 健康探针 & 自动恢复
-│   ├── state.py                       # JSON 状态持久化
-│   └── feishu.py                      # 飞书通知
-├── scripts/                           # 独立 Bash 脚本（零依赖）
-│   ├── health-monitor.sh              # 快速探针（30min，去重告警）
-│   └── full-check.sh                  # 完整体检（飞书卡片报告）
-└── skills/                            # Hermes 技能包
-    ├── monitor/                       # Python 监控引擎 + 部署
-    │   ├── deploy.cjs                 # 一键部署脚本
-    │   ├── monitor.py                 # 核心引擎
-    │   └── README.md
-    └── gateway-fix/                   # Gateway 崩溃修复 SOP
-        └── SKILL.md
+├── scripts/                           # Bash 监控脚本
+│   ├── full-check.sh                  # 全面健康检查
+│   └── health-monitor.sh              # 轻量健康检查
+├── shared/                            # Python 共享库
+│   ├── __init__.py
+│   ├── checks.py                      # 探针检测 + 自动恢复
+│   ├── config.py                      # 环境配置加载
+│   ├── feishu.py                      # 飞书通知推送
+│   └── state.py                       # 状态持久化 + 日志
+└── skills/monitor/                    # 可部署监控技能
+    ├── README.md
+    ├── deploy.cjs                     # 一键部署脚本
+    └── monitor.py                     # 监控核心引擎（v2）
 ```
 
-## 检测维度
+## 监控维度
 
-| 探针 | 频率 | 级别 | 说明 |
-|------|------|------|------|
-| Hermes 进程 | 30min | **P0** | Hermes 桌面端是否在运行 |
-| AdsPower 浏览器 | 30min | **P1** | 广告采集依赖的浏览器状态 |
-| 磁盘空间 | 2h | **P2** | 磁盘是否即将写满 |
-| 数据库可读写 | 30min | **P1** | 核心数据库是否正常 |
-| 公网网络 | 30min | **P2** | 外网连通性 |
-| Cron 任务完整性 | 2h | **P1** | 定时任务是否丢失 |
+| 维度 | 级别 | 告警 | 自动恢复 |
+|------|------|------|---------|
+| 🔴 **Hermes 进程** | P0 | 飞书 @all | ✅ 自动重启 |
+| 🟠 **AdsPower 浏览器** | P1 | 飞书通知 | ✅ 自动恢复 |
+| 🟠 **数据库** | P1 | 飞书通知 | ❌ |
+| 🟠 **Cron 任务** | P1 | 飞书通知 | ❌ |
+| 🟡 **磁盘空间** | P2 | 汇总通知 | ❌ |
+| 🟡 **网络连通性** | P2 | 汇总通知 | ❌ |
 
-## 告警分级
+## 双循环运行
 
-| 级别 | 含义 | 飞书动作 | 自动恢复 |
-|------|------|----------|----------|
-| 🚨 **P0** | 核心服务不可用 | @所有人 | 自动重启 |
-| ⚠️ **P1** | 功能异常 | 普通通知 | 自动修复 |
-| 🔔 **P2** | 需关注 | 通知 | 记录待处理 |
-| ℹ️ **P3** | 信息 | 通知 | 仅记录 |
+```
+⏱ 快速探针（每30分钟）→ monitor --fast: 
+   仅检查 Hermes 进程 + 浏览器，状态变化时通知
 
-## 配置方式
+🩺 完整体检（每2小时） → monitor（完整模式）:
+   所有维度 + 健康报告 + 公网 IP
+```
 
-```bash
-# 飞书 Webhook（二选一）
-# 选项A：环境变量
-export FEISHU_BOT_WEBHOOK=https://open.feishu.cn/open-apis/bot/v2/hook/your_token_here
+## 飞书通知示例
 
-# 选项B：配置文件（推荐）
-cp config/webhook.example ~/.hermes/scripts/.report_webhook
-# 编辑 .report_webhook 填入你的 Webhook URL
+```
+🔥 P0 Hermes进程
+❌ 进程挂了
+详情: 未找到 Hermes 进程
 
-# 测试监控
-cd skills/monitor && python monitor.py
+🤖 全能守护者健康报告
+🕐 2026-06-13 15:30
+🌐 公网IP: 123.xxx.xxx.xxx
+✅ Hermes进程: up
+✅ 浏览器: up
+✅ 磁盘空间: ok
+✅ 数据库: up
+✅ 网络: up
+✅ 定时任务: up
+🤖 自动恢复: 无异常
 ```
 
 ## 环境要求
 
 - Python 3.8+
-- Node.js 16+（deploy.cjs 需要）
-- Windows 10/11（Hermes Agent 运行环境）
-- 飞书机器人 Webhook（告警推送）
-
-## 从 hermes-monitor 迁移
-
-本仓库是原 `hermes-monitor` 的独立版。如果之前使用旧版：
-- 配置文件和运行状态在 `~/.hermes/scripts/.report_webhook`
-- 迁移后所有功能不变，部署脚本已更新指向新仓库地址
-
----
-
-*Hermes Watchdog — 让你的 Agent 永不掉线*
+- Node.js 16+（仅部署时需要）
+- Hermes Agent（被监控对象）
+- AdsPower（可选，浏览器监控需要）

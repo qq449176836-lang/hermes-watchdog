@@ -52,7 +52,7 @@ if [ -n "$mem_kb" ] && [ "$mem_kb" -gt 0 ]; then
 fi
 
 lock_count=$(find "$GATEWAY_RUNTIME" "$HERMES_HOME" -maxdepth 3 -name "*.lock" 2>/dev/null | wc -l | tr -d '[:space:]')
-if [ "${lock_count:-0}" -eq 0 ]; then lock_info="🟢 0"; elif [ "${lock_count:-0}" -le 2 ]; then lock_info="🟢 ${lock_count:-0}"; else lock_info="🟡 ${lock_count:-0}"; fi
+if [ "${lock_count:-0}" -eq 0 ]; then lock_info="🟢 0"; elif [ "${lock_count:-0}" -le 5 ]; then lock_info="🟢 ${lock_count:-0}"; else lock_info="🟡 ${lock_count:-0}"; fi
 
 cron_count=$(grep -c '"name"' "$HERMES_HOME/cron/jobs.json" 2>/dev/null || echo "N/A")
 if [ "$cron_count" != "N/A" ] && [ "$cron_count" -ge 2 ]; then cron_info="🟢 $cron_count"; elif [ "$cron_count" != "N/A" ]; then cron_info="🟡 $cron_count"; else cron_info="N/A"; fi

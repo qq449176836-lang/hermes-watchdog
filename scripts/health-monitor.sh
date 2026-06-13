@@ -59,7 +59,7 @@ fi
 
 # P1: Lock files
 lock_count=$(find "$GATEWAY_RUNTIME" "$HERMES_HOME" -maxdepth 3 -name "*.lock" 2>/dev/null | wc -l | tr -d '[:space:]')
-if [ "${lock_count:-0}" -gt 2 ]; then
+if [ "${lock_count:-0}" -gt 5 ]; then
     issues+="- 残留锁文件: ${lock_count:-0}个\n"
 fi
 
